@@ -10,7 +10,7 @@
 
 
 
-FROM ubuntu:focal
+FROM ubuntu:jammy
 
 MAINTAINER Gregory Desvignes "gdesvignes.astro@gmail.com"
 
@@ -44,7 +44,6 @@ RUN apt-get -y install \
     automake \
     autotools-dev \
     binutils-dev \
-    bison \
     build-essential \
     cmake \
     cmake-curses-gui \
@@ -53,7 +52,7 @@ RUN apt-get -y install \
     csh \
     curl \
     cvs \
-    cython \
+    cython3 \
     dkms \
     dvipng \
     emacs\
@@ -61,7 +60,6 @@ RUN apt-get -y install \
     f2c \
     fftw-dev \
     fftw2 \
-    flex \
     fort77 \
     g++ \
     gawk \
@@ -84,7 +82,8 @@ RUN apt-get -y install \
     python3-ipython \
     python3-notebook \
     jupyter \
-    jupyter-core\
+    jupyter-core \
+    latex2html \
     libatlas-base-dev \
     libbison-dev \
     libblas-dev \
@@ -95,18 +94,15 @@ RUN apt-get -y install \
     libcfitsio-bin \
     libcfitsio-dev \
     libcfitsio-doc \
-    #libcloog-isl4 \
     libcppunit-dev \
     libcppunit-subunit-dev \
     libcppunit-subunit0 \
     libfftw3-3 \
     libfftw3-bin \
-    #libfftw3-dbg \
     libfftw3-dev \
     libfftw3-double3 \
     libfftw3-long3 \
     libfftw3-single3 \
-    #libfftw3-quad3 \
     libfreetype6 \
     libfreetype6-dev \
     libgd-dev \
@@ -116,8 +112,6 @@ RUN apt-get -y install \
     libglib2.0-dev \
     libgmp3-dev \
     libgsl-dev \
-    libgtksourceview-3.0-dev \
-    libgtksourceview2.0-dev \
     libhdf5-dev \
     libhdf5-serial-dev \
     libhwloc-dev \
@@ -165,10 +159,10 @@ RUN apt-get -y install \
     libssl-dev \
     libtool \
     libx11-dev \
-    llvm-6.0 \
-    llvm-6.0-dev \
-    llvm-6.0-examples \
-    llvm-6.0-runtime \
+    llvm-12 \
+    llvm-12-dev \
+    llvm-12-examples \
+    llvm-12-runtime \
     locate \
     lsof \
     m4 \
@@ -178,16 +172,23 @@ RUN apt-get -y install \
     nano \
     nfs-common \
     numactl \
+    openjdk-8-jdk \
     openssh-server \
+    pax \
     pbzip2 \
     pgplot5 \
     pkg-config \
     python3 \
     python3-dev \
     python3-pip \
+    python3-pyside2.qtcore \
+    python3-pyside2.qtgui \
+    python3-pyside2.qtwidgets \
     python3-tk \
     python3-setuptools \
+    rsync \
     screen \
+    software-properties-common \
     source-highlight \
     subversion \
     swig \
@@ -199,19 +200,8 @@ RUN apt-get -y install \
     wcslib-dev \
     wcslib-tools \
     wget \
-    zlib1g-dev\
-    zsh \
-    htop\
-    latex2html\
-    libpng-dev\
     zlib1g-dev \
-    software-properties-common \
-    openjdk-8-jdk\
-    python3\
-    libopenblas-base\
-    libopenblas-dev\
-    pax-utils \
-    rsync
+    zsh
 
 # Install python modules
 
@@ -230,10 +220,6 @@ RUN pip3 install pip -U && \
     pip3 install astroplan -U && \
     pip3 install astropy_helpers -U && \
     pip3 install astroquery -U && \
-    pip3 install pytz -U && \
-    #pip3 install paramz -U && \
-    pip3 install APLpy -U && \
-    pip3 install pyfits -U && \
     pip3 install matplotlib -U && \
     pip3 install pyephem -U && \
     pip3 install setuptools_scm pep517 -U && \
@@ -246,7 +232,11 @@ RUN pip3 install pip -U && \
     pip3 install dynesty -U && \
     pip3 install dyPolyChord -U && \
     pip3 install lmfit -U && \
-    pip3 install PyWavelets -U
+    pip3 install PyWavelets -U && \
+    pip3 install ultranest -U && \
+    pip3 install iminuit -U && \
+    pip3 install numba -U && \
+    pip3 install pint-pulsar -U
 
 # Set python3 as default version
 RUN update-alternatives --install  /usr/bin/python python /usr/bin/python3 1
@@ -262,11 +252,9 @@ RUN mkdir -p /home/psr/software
 
 # Downloading all source codes
 WORKDIR $PSRHOME
-RUN wget --no-check-certificate https://www.imcce.fr/content/medias/recherche/equipes/asd/calceph/calceph-2.3.2.tar.gz && \
-    tar -xvvf calceph-2.3.2.tar.gz -C $PSRHOME && \
-    wget  http://ds9.si.edu/download/ubuntu20/ds9.ubuntu20.8.2.1.tar.gz && \
-    mkdir $PSRHOME/ds9-8.2 && \
-    tar -xvvf ds9.ubuntu20.8.2.1.tar.gz -C $PSRHOME/ds9-8.2 && \
+RUN wget  http://ds9.si.edu/download/ubuntu20/ds9.ubuntu20.8.4.tar.gz && \
+    mkdir $PSRHOME/ds9-8.4 && \
+    tar -xvvf ds9.ubuntu20.8.4.tar.gz -C $PSRHOME/ds9-8.4 && \
     wget http://heasarc.gsfc.nasa.gov/FTP/software/lheasoft/fv/fv5.4_pc_linux64.tar.gz && \
     tar -xvvf fv5.4_pc_linux64.tar.gz -C $PSRHOME && \
     wget http://www.atnf.csiro.au/people/pulsar/psrcat/downloads/psrcat_pkg.tar.gz && \
@@ -277,7 +265,8 @@ RUN wget --no-check-certificate https://www.imcce.fr/content/medias/recherche/eq
     tar -xvvf h5check-2.0.1.tar.gz && \
     wget -U 'Linux' https://bsdforge.com/projects/devel/clig/src/clig-1.9.11.2.tar.xz && \
     tar -xvvf clig-1.9.11.2.tar.xz && \
-    git clone https://github.com/SixByNine/psrxml.git && \
+    wget http://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio-4.2.0.tar.gz && \
+    tar -xvf cfitsio-4.2.0.tar.gz && \
     git clone https://bitbucket.org/psrsoft/tempo2.git && \
     git clone https://github.com/gdesvignes/tempo.git && \
     git clone https://git.code.sf.net/p/psrchive/code psrchive && \
@@ -292,10 +281,10 @@ RUN wget --no-check-certificate https://www.imcce.fr/content/medias/recherche/eq
     git clone https://github.com/straten/epsic.git && \
     git clone https://github.com/JohannesBuchner/MultiNest  && \
     git clone https://github.com/PolyChord/PolyChordLite.git && \
-    git clone https://github.com/gdesvignes/TempoNest.git && \
     git clone https://github.com/vivekvenkris/plotres.git && \
     git clone https://github.com/vivekvenkris/fitorbit.git &&\
     git clone https://github.com/gdesvignes/PulsePortraiture.git &&\
+    git clone https://github.com/gdesvignes/pyfitorbit.git &&\
     git clone https://github.com/demorest/tempo_utils &&\
     git clone --recursive https://github.com/sorin-ionescu/prezto.git "${ZDOTDIR:-$HOME}/.zprezto" 
 
@@ -308,16 +297,13 @@ ENV PGPLOT_DIR="/usr/lib/pgplot5" \
     PGPLOT_FOREGROUND="black" \
     PGPLOT_DEV="/xs"
 
-# calceph
-#ENV CALCEPH=$PSRHOME"/calceph-2.3.2" \
-#    PATH=$PATH:$PSRHOME"/calceph-2.3.2/install/bin" \
-#    LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PSRHOME"/calceph-2.3.2/install/lib" \
-#    C_INCLUDE_PATH=$C_INCLUDE_PATH:$PSRHOME"/calceph-2.3.2/install/include"
-#WORKDIR $CALCEPH
-#RUN ./configure --prefix=$CALCEPH/install --with-pic --enable-shared --enable-static --enable-fortran --enable-thread && \
-#    make && \
-#    make check && \
-#    make install
+# CFITSIO
+ENV CFITSIO=$PSRHOME"/cfitsio-4.2.0" 
+WORKDIR $PSRHOME/cfitsio
+RUN ./configure  && \
+    make -j $(nproc) && \
+    make shared && \
+    make install
 
 # ds9
 ENV PATH $PATH:$PSRHOME/ds9-7.5
@@ -330,17 +316,6 @@ ENV PSRCAT_FILE=$PSRHOME"/psrcat_tar/psrcat.db" \
     PATH=$PATH:$PSRHOME"/psrcat_tar"
 WORKDIR $PSRHOME/psrcat_tar
 RUN /bin/bash makeit
-
-# psrXML
-ENV PSRXML=$PSRHOME"/psrxml" \
-    PATH=$PATH:$PSRHOME"/psrxml/install/bin" \
-    LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PSRHOME"/psrxml/install/lib" \
-    C_INCLUDE_PATH=$C_INCLUDE_PATH:$PSRHOME"/psrxml/install/include"
-WORKDIR $PSRXML
-RUN autoreconf --install --warnings=none
-RUN ./configure --prefix=$PSRXML/install && \
-    make && \
-    make install
 
 # tempo
 ENV TEMPO=$PSRHOME"/tempo" \
@@ -384,24 +359,17 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PSRHOME"/epsic/install/lib" \
     CPPFLAGS="-I ${PSRHOME}/epsic/install/include/epsic"  \
     CFLAGS="-I ${PSRHOME}/epsic/install/include/epsic" 
 
-
-
 # PSRCHIVE
 ENV PSRCHIVE=$PSRHOME"/psrchive/install" \
     PATH=$PATH:$PSRHOME"/psrchive/install/bin" \
     C_INCLUDE_PATH=$C_INCLUDE_PATH:$PSRHOME"/psrchive/install/include" \
     LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PSRHOME"/psrchive/install/lib" \
     PYTHONPATH=$PYTHONPATH:$PSRHOME"/psrchive/install/lib/python3.8/site-packages"
-
-
 WORKDIR $PSRHOME/psrchive/
-
 RUN ./bootstrap && \
-    ./configure --prefix=$PSRCHIVE --x-libraries=/usr/lib/x86_64-linux-gnu --with-psrxml-dir=$PSRXML/install --enable-shared --enable-static F77=gfortran LDFLAGS="-L"$PSRXML"/install/lib" LIBS="-lpsrxml -lxml2" && \
+    ./configure --prefix=$PSRCHIVE --x-libraries=/usr/lib/x86_64-linux-gnu  --enable-shared --enable-static F77=gfortran  && \
     make -j $(nproc) && \
     make install 
-
-
 WORKDIR $HOME
 RUN $PSRCHIVE/bin/psrchive_config >> .psrchive.cfg && \
     sed -i 's/# ArrivalTime::default_format = Parkes/ArrivalTime::default_format = Tempo2/g' .psrchive.cfg && \
@@ -438,7 +406,7 @@ ENV DSPSR=$PSRHOME"/dspsr" \
 WORKDIR $DSPSR
 RUN ./bootstrap && \
     echo "apsr asp bcpm bpsr caspsr cpsr cpsr2 dummy fits kat lbadr lbadr64  puma2 sigproc ska1" > backends.list && \
-    ./configure --prefix=$DSPSR/install --x-libraries=/usr/lib/x86_64-linux-gnu CPPFLAGS="$CPPFLAGS -I"$DAL"/install/include -I/usr/include/hdf5/serial -I/usr/local/cuda/include -I"$PSRXML"/install/include" LDFLAGS="-L"$DAL"/install/lib -L/usr/lib/x86_64-linux-gnu/hdf5/serial -L"$PSRXML"/install/lib -L/usr/local/cuda/lib64" LIBS="-lpgplot -lcpgplot -lpsrxml -lxml2" && \
+    ./configure --prefix=$DSPSR/install --x-libraries=/usr/lib/x86_64-linux-gnu CPPFLAGS="$CPPFLAGS -I"$DAL"/install/include -I/usr/include/hdf5/serial -I/usr/local/cuda/include"  LDFLAGS="-L"$DAL"/install/lib -L/usr/lib/x86_64-linux-gnu/hdf5/serial  -L/usr/local/cuda/lib64" LIBS="-lpgplot -lcpgplot" && \
     make -j $(nproc) && \
     make && \
     make install
@@ -476,42 +444,21 @@ RUN make prep && \
 WORKDIR $PRESTO
 RUN pip install .
 
-
-
 # psrfits2psrfits
-ENV PSRFITS2PSRFITS=$PSRHOME"/psrfits2psrfits" \
+ENV CLIGF=$PSRHOME"/clig" \
+    PSRFITS2PSRFITS=$PSRHOME"/psrfits2psrfits" \
     PATH=$PATH:$PSRHOME"/psrfits2psrfits"
 WORKDIR $PSRFITS2PSRFITS
-RUN make -j $(nproc) && \
+RUN sed -i 's|/usr/bin/clig|$(CLIGF)/instal/bin/clig|g' Makefile && \
+    make -j $(nproc) && \
     make
-
-
-# psrfits_utils
-#ENV PSRFITS_UTILS=$PSRHOME"/psrfits_utils" \
-#    PATH=$PATH:$PSRHOME"/psrfits_utils/install/bin" \
-#    C_INCLUDE_PATH=$C_INCLUDE_PATH:$PSRHOME"/psrfits_utils/install/include" \
-#    LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PSRHOME"/psrfits_utils/install/lib"
-#WORKDIR $PSRFITS_UTILS
-#RUN git pull
-#RUN sed -i 's|-Werror foreign|-Werror foreign -Wno-extra-portability|g' configure.ac && \
-#    ./prepare && \
-#    ./configure --prefix=$PSRFITS_UTILS/install --with-presto=$PRESTO && \
-#    make -j $(nproc) && \
-#    make && \
-#    make install
 
 # pyslalib
 ENV PYSLALIB=$PSRHOME"/pyslalib"
 WORKDIR $PYSLALIB
 RUN python3 setup.py install --record list.txt --user
 
-
-# #topcat
-# WORKDIR $PSRHOME/topcat
-# RUN wget http://www.star.bris.ac.uk/~mbt/topcat/topcat-full.jar 
-
 #Zsh commands
-
 RUN rm -rf /home/psr/.zprezto && zsh -c 'git clone --recursive https://github.com/sorin-ionescu/prezto.git "${ZDOTDIR:-$HOME}/.zprezto"' && \
 zsh -c 'setopt EXTENDED_GLOB && for rcfile in "${ZDOTDIR:-$HOME}"/.zprezto/runcoms/^README.md(.N); do ln -s "$rcfile" "${ZDOTDIR:-$HOME}/.${rcfile:t}"; done '
 
@@ -521,25 +468,17 @@ curl -L https://iterm2.com/shell_integration/install_shell_integration_and_utili
 
 # PolyChordLite
 WORKDIR $PSRHOME/PolyChordLite
-RUN make all
+RUN make all && pip install . --user
 ENV PC_DIR="$PSRHOME/PolyChordLite/lib"
 
-#Installing TempoNest and relevant dependencies
-WORKDIR $PSRHOME
+# MultiNest
 WORKDIR $PSRHOME/MultiNest/build
 RUN cmake .. && make && ln -s $PSRHOME/MultiNest/lib/libmultinest_mpi.so $PSRHOME/MultiNest/lib/libnest3.so
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"$PSRHOME/MultiNest/lib":"/usr/lib/x86_64-linux-gnu/openmpi/lib/" \
     CFLAGS="$CFLAGS -I$PSRHOME/MultiNest/include" \
     CPPFLAGS="$CPPFLAGS -I$PSRHOME/MultiNest/include" \
     MULTINEST_DIR="$PSRHOME/MultiNest/lib"
-
-#WORKDIR $PSRHOME/TempoNest/PolyChord
-#RUN make && mv src/libchord.a $PSRHOME/MultiNest/lib/
-
-#WORKDIR $PSRHOME/TempoNest
-#RUN sh ./autogen.sh && ./configure --prefix=$PSRHOME/TempoNest && make temponest && make temponest-install
-
-
+    
 #plotres
 ENV PLOTRES=$PSRHOME"/plotres"
 WORKDIR $PLOTRES
@@ -564,25 +503,19 @@ ENV TEMPOUTILS=$PSRHOME"/tempo_utils"
 WORKDIR $TEMPOUTILS
 RUN python3 setup.py install --record list.txt --user
 
-# install ROOT
-WORKDIR $PSRHOME
-RUN git clone --branch v6-22-00-patches https://github.com/root-project/root.git root_src
-RUN mkdir root_build root_install
-WORKDIR  $PSRHOME/"/root_build"
-RUN cmake -DCMAKE_INSTALL_PREFIX=../root_install ../root_src # && check cmake configuration output for warnings or errors
-RUN cmake --build . -- install -j4 # if you have 4 cores available for compilation
-USER root
-RUN /bin/bash -c "source ../root_install/bin/thisroot.sh"
-USER psr
-
-#RUN git clone --branch v6-24-00-patches https://github.com/root-project/root.git root_src
-#RUN mkdir root_build root
-#ENV ROOT=$PSRHOME"/root"
-#WORKDIR $ROOT
-#RUN cmake -DCMAKE_INSTALL_PREFIX=$ROOT $PSRHOME"/root_src" && cmake --build . --target install 
-#USER root
-#RUN /bin/bash -c "source bin/thisroot.sh"
-#USER psr
+# psrfits_utils
+ENV PSRFITS_UTILS=$PSRHOME"/psrfits_utils" \
+    PATH=$PATH:$PSRHOME"/psrfits_utils/install/bin" \
+    C_INCLUDE_PATH=$C_INCLUDE_PATH:$PSRHOME"/psrfits_utils/install/include" \
+    LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PSRHOME"/psrfits_utils/install/lib"
+WORKDIR $PSRFITS_UTILS
+#RUN git pull
+#RUN sed -i 's|-Werror foreign|-Werror foreign -Wno-extra-portability|g' configure.ac && \
+#    ./prepare && \
+#    ./configure --prefix=$PSRFITS_UTILS/install --with-presto=$PRESTO && \
+#    make -j $(nproc) && \
+#    make && \
+#    make install
 
 # Clean downloaded source codes
 WORKDIR $PSRHOME
@@ -645,13 +578,6 @@ RUN echo "" >> .bashrc && \
     echo "# psrcat" >> .mysetenv.bash && \
     echo "export PSRCAT_FILE=\$PSRHOME/psrcat_tar/psrcat.db" >> .mysetenv.bash && \
     echo "export PATH=\$PATH:\$PSRHOME/psrcat_tar" >> .mysetenv.bash && \
-    echo "" >> .mysetenv.bash && \
-
-    echo "# psrXML" >> .mysetenv.bash && \
-    echo "export PSRXML=\$PSRHOME/psrxml" >> .mysetenv.bash && \
-    echo "export PATH=\$PATH:\$PSRXML/install/bin" >> .mysetenv.bash && \
-    echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:\$PSRXML/install/lib" >> .mysetenv.bash && \
-    echo "export C_INCLUDE_PATH=\$C_INCLUDE_PATH:\$PSRXML/install/include" >> .mysetenv.bash && \
     echo "" >> .mysetenv.bash && \
 
     echo "# tempo" >> .mysetenv.bash && \
@@ -735,10 +661,14 @@ RUN echo "" >> .bashrc && \
     echo "export PYSLALIB=\$PSRHOME/pyslalib" >> .mysetenv.bash && \
     echo "" >> .mysetenv.bash && \
 
-    echo "# TempoNest" >> .mysetenv.bash && \
+    echo "# MultiNest" >> .mysetenv.bash && \
     echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/home/psr/software/MultiNest/lib" >> .mysetenv.bash && \
     echo "export MULTINEST_DIR=\$PSRHOME/MultiNest/lib" >> .mysetenv.bash && \
-    echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/usr/lib/x86_64-linux-gnu/openmpi/lib/" >> .mysetenv.bash && \
+
+    echo "# PolyChordLite" >> .mysetenv.bash && \
+    echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/home/psr/software/PolyChordLite/lib" >> .mysetenv.bash && \
+    echo "export PC_DIR=\$PSRHOME/PolyChordLite/lib" >> .mysetenv.bash && \
+
 
     echo "# Plotres" >> .mysetenv.bash && \
     echo "export PLOTRES=\$PSRHOME/plotres" >> .mysetenv.bash && \
