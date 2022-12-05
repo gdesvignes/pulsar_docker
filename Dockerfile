@@ -299,7 +299,7 @@ ENV PGPLOT_DIR="/usr/lib/pgplot5" \
 
 # CFITSIO
 ENV CFITSIO=$PSRHOME"/cfitsio-4.2.0" 
-WORKDIR $PSRHOME/cfitsio
+WORKDIR $PSRHOME/cfitsio-4.2.0
 RUN ./configure  && \
     make -j $(nproc) && \
     make shared && \
@@ -386,7 +386,7 @@ ENV SIGPROC=$PSRHOME"/sigproc" \
     CXX="g++"
 WORKDIR $SIGPROC
 RUN ./bootstrap && \
-    ./configure --prefix=$SIGPROC/install --x-libraries=/usr/lib/x86_64-linux-gnu --enable-shared LDFLAGS="-L"$TEMPO2"/lib" LIBS="-ltempo2" && \
+    ./configure --prefix=$SIGPROC/install --x-libraries=/usr/lib/x86_64-linux-gnu --enable-shared LDFLAGS="-L"$TEMPO2"/lib" LIBS="-ltempo2" CFLAGS="-fcommon" FFLAGS="-fallow-argument-mismatch" && \
     make && \
     make install
 
