@@ -91,9 +91,9 @@ RUN apt-get -y install \
     libboost-all-dev \
     libc-dev-bin \
     libc6-dev \
-    libcfitsio-bin \
-    libcfitsio-dev \
-    libcfitsio-doc \
+    #libcfitsio-bin \
+    #libcfitsio-dev \
+    #libcfitsio-doc \
     libcppunit-dev \
     libcppunit-subunit-dev \
     libcppunit-subunit0 \
@@ -275,7 +275,6 @@ RUN wget  http://ds9.si.edu/download/ubuntu20/ds9.ubuntu20.8.4.tar.gz && \
     git clone https://git.code.sf.net/p/dspsr/code dspsr && \
     git clone https://github.com/weltevrede/psrsalsa.git && \
     git clone https://github.com/scottransom/presto.git && \
-    git clone https://github.com/scottransom/psrfits2psrfits.git && \
     git clone https://github.com/gdesvignes/psrfits_utils.git && \
     git clone https://github.com/scottransom/pyslalib.git && \
     git clone https://github.com/straten/epsic.git && \
@@ -300,10 +299,13 @@ ENV PGPLOT_DIR="/usr/lib/pgplot5" \
 # CFITSIO
 ENV CFITSIO=$PSRHOME"/cfitsio-4.2.0" 
 WORKDIR $PSRHOME/cfitsio-4.2.0
-RUN ./configure  && \
+RUN ./configure --prefix=/usr  && \
     make -j $(nproc) && \
-    make shared && \
-    make install
+    make shared
+USER root
+WORKDIR $PSRHOME/cfitsio-4.2.0
+RUN make install
+USER psr
 
 # ds9
 ENV PATH $PATH:$PSRHOME/ds9-7.5
@@ -369,7 +371,8 @@ WORKDIR $PSRHOME/psrchive/
 RUN ./bootstrap && \
     ./configure --prefix=$PSRCHIVE --x-libraries=/usr/lib/x86_64-linux-gnu  --enable-shared --enable-static F77=gfortran  && \
     make -j $(nproc) && \
-    make install 
+    make install && \
+    make clean 
 WORKDIR $HOME
 RUN $PSRCHIVE/bin/psrchive_config >> .psrchive.cfg && \
     sed -i 's/# ArrivalTime::default_format = Parkes/ArrivalTime::default_format = Tempo2/g' .psrchive.cfg && \
@@ -409,7 +412,8 @@ RUN ./bootstrap && \
     ./configure --prefix=$DSPSR/install --x-libraries=/usr/lib/x86_64-linux-gnu CPPFLAGS="$CPPFLAGS -I"$DAL"/install/include -I/usr/include/hdf5/serial -I/usr/local/cuda/include"  LDFLAGS="-L"$DAL"/install/lib -L/usr/lib/x86_64-linux-gnu/hdf5/serial  -L/usr/local/cuda/lib64" LIBS="-lpgplot -lcpgplot" && \
     make -j $(nproc) && \
     make && \
-    make install
+    make install && \
+    make clean 
 
 # clig
 ENV CLIG=$PSRHOME"/clig" \
@@ -444,15 +448,6 @@ RUN make prep && \
 WORKDIR $PRESTO
 RUN pip install .
 
-# psrfits2psrfits
-ENV CLIGF=$PSRHOME"/clig" \
-    PSRFITS2PSRFITS=$PSRHOME"/psrfits2psrfits" \
-    PATH=$PATH:$PSRHOME"/psrfits2psrfits"
-WORKDIR $PSRFITS2PSRFITS
-RUN sed -i 's|/usr/bin/clig|$(CLIGF)/instal/bin/clig|g' Makefile && \
-    make -j $(nproc) && \
-    make
-
 # pyslalib
 ENV PYSLALIB=$PSRHOME"/pyslalib"
 WORKDIR $PYSLALIB
@@ -482,16 +477,16 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"$PSRHOME/MultiNest/lib":"/usr/lib/x86_64-l
 #plotres
 ENV PLOTRES=$PSRHOME"/plotres"
 WORKDIR $PLOTRES
-RUN gfortran -o plotres plotres.f -lcpgplot -lpgplot -lX11 -lm && \
-    gfortran -o plotres_ps plotres_ps.f -lcpgplot -lpgplot -lX11 -lm
+RUN gfortran -fallow-argument-mismatch -o plotres plotres.f -lcpgplot -lpgplot -lX11 -lm && \
+    gfortran -fallow-argument-mismatch -o plotres_ps plotres_ps.f -lcpgplot -lpgplot -lX11 -lm
 
 ENV PATH=$PATH:"$PLOTRES/"
 
 #fitorbit
 ENV FITORBIT=$PSRHOME"/fitorbit"
 WORKDIR $FITORBIT
-RUN ./install.sh
-ENV PATH=$PATH:"$FITORBIT/bin"
+#RUN  ./install.sh
+#ENV PATH=$PATH:"$FITORBIT/bin"
 
 #pulse portraiture
 ENV PP=$PSRHOME"/PulsePortraiture"
@@ -509,13 +504,11 @@ ENV PSRFITS_UTILS=$PSRHOME"/psrfits_utils" \
     C_INCLUDE_PATH=$C_INCLUDE_PATH:$PSRHOME"/psrfits_utils/install/include" \
     LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PSRHOME"/psrfits_utils/install/lib"
 WORKDIR $PSRFITS_UTILS
-#RUN git pull
-#RUN sed -i 's|-Werror foreign|-Werror foreign -Wno-extra-portability|g' configure.ac && \
-#    ./prepare && \
-#    ./configure --prefix=$PSRFITS_UTILS/install --with-presto=$PRESTO && \
-#    make -j $(nproc) && \
-#    make && \
-#    make install
+RUN  ./prepare && \
+    ./configure --prefix=$PSRFITS_UTILS/install --with-presto=$PRESTO && \
+    make -j $(nproc) && \
+    make && \
+    make install
 
 # Clean downloaded source codes
 WORKDIR $PSRHOME
@@ -645,11 +638,6 @@ RUN echo "" >> .bashrc && \
     echo "export PYTHONPATH=\$PYTHONPATH:\$PRESTO/lib/python" >> .mysetenv.bash && \
     echo "" >> .mysetenv.bash && \
 
-    echo "# psrfits2psrfits" >> .mysetenv.bash && \
-    echo "export PSRFITS2PSRFITS=\$PSRHOME/psrfits2psrfits" >> .mysetenv.bash && \
-    echo "export PATH=\$PATH:\$PSRFITS2PSRFITS" >> .mysetenv.bash && \
-    echo "" >> .mysetenv.bash && \
-
     echo "# psrfits_utils" >> .mysetenv.bash && \
     echo "export PSRFITS_UTILS=\$PSRHOME/psrfits_utils" >> .mysetenv.bash && \
     echo "export PATH=\$PATH:\$PSRFITS_UTILS/install/bin" >> .mysetenv.bash && \
@@ -674,10 +662,10 @@ RUN echo "" >> .bashrc && \
     echo "export PLOTRES=\$PSRHOME/plotres" >> .mysetenv.bash && \
     echo "export PATH=\$PATH:\$PLOTRES/" >> .mysetenv.bash && \
 
-    echo "# Fitorbit" >> .mysetenv.bash && \
-    echo "export FITORBIT=\$PSRHOME/fitorbit" >> .mysetenv.bash && \
-    echo "export PATH=\$PATH:\$FITORBIT/bin" >> .mysetenv.bash && \
-    echo "export fitorbitdir=\$PSRHOME/fitorbit/src/" >> .mysetenv.bash && \
+    #echo "# Fitorbit" >> .mysetenv.bash && \
+    #echo "export FITORBIT=\$PSRHOME/fitorbit" >> .mysetenv.bash && \
+    #echo "export PATH=\$PATH:\$FITORBIT/bin" >> .mysetenv.bash && \
+    #echo "export fitorbitdir=\$PSRHOME/fitorbit/src/" >> .mysetenv.bash && \
 
     echo "# Pulse Portraiture" >> .mysetenv.bash && \
     echo "export PP=\$PSRHOME/PulsePortraiture" >> .mysetenv.bash && \
