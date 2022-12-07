@@ -366,7 +366,7 @@ ENV PSRCHIVE=$PSRHOME"/psrchive/install" \
     PATH=$PATH:$PSRHOME"/psrchive/install/bin" \
     C_INCLUDE_PATH=$C_INCLUDE_PATH:$PSRHOME"/psrchive/install/include" \
     LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PSRHOME"/psrchive/install/lib" \
-    PYTHONPATH=$PYTHONPATH:$PSRHOME"/psrchive/install/lib/python3.8/site-packages"
+    PYTHONPATH=$PYTHONPATH:$PSRHOME"/psrchive/install/lib/python3.10/site-packages"
 WORKDIR $PSRHOME/psrchive/
 RUN ./bootstrap && \
     ./configure --prefix=$PSRCHIVE --x-libraries=/usr/lib/x86_64-linux-gnu  --enable-shared --enable-static F77=gfortran  && \
@@ -595,7 +595,7 @@ RUN echo "" >> .bashrc && \
     echo "export PATH=\$PATH:\$PSRCHIVE/bin" >> .mysetenv.bash && \
     echo "export C_INCLUDE_PATH=\$C_INCLUDE_PATH:\$PSRCHIVE/include" >> .mysetenv.bash && \
     echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:\$PSRCHIVE/lib" >> .mysetenv.bash && \
-    echo "export PYTHONPATH=\$PYTHONPATH:\$PSRCHIVE/lib/python3.8/site-packages" >> .mysetenv.bash && \
+    echo "export PYTHONPATH=\$PYTHONPATH:\$PSRCHIVE/lib/python3.10/site-packages" >> .mysetenv.bash && \
     echo "" >> .mysetenv.bash && \
 
     echo "# SIGPROC" >> .mysetenv.bash && \

@@ -1,5 +1,5 @@
 # pulsar_docker
-Builds a docker image for a pulsar analysis packages and few extras on Ubuntu 20.04 LTS. Forked from https://github.com/vivekvenkris/pulsar_docker that is itself forked from https://github.com/mserylak/pulsar_docker
+Builds a docker image for a pulsar analysis packages and few extras on Ubuntu 22.04 LTS (Jammy Jellyfish). Forked from https://github.com/vivekvenkris/pulsar_docker that is itself forked from https://github.com/mserylak/pulsar_docker
 
 You'll find all pulsar software in /home/psr/software, environment variables are set according to ~/.mysetenv.bash file.
 
@@ -45,7 +45,7 @@ To use the docker image in singularity, you probably need to change the CACHE an
     export SINGULARITY_CACHEDIR=/fpra/mkat/01/users/vivek
     export SINGULARITY_TMPDIR=/fpra/mkat/01/users/vivek
 
-    singularity shell -B <host_directory> docker://vivekvenkris/vivek_pulsar_docker:latest
+    singularity shell -B <host_directory>:<singularity_dir> <path_to_singularity_image>
 
 # Issues
-Report problems to vkrishnan@mpifr-bonn.mpg.de
+Report problems to gdesvignes@mpifr-bonn.mpg.de
