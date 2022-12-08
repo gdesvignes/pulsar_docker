@@ -693,7 +693,8 @@ RUN sed 's/X11Forwarding yes/X11Forwarding yes\nX11UseLocalhost no/' -i /etc/ssh
     echo "fi" >> .bashrc && \
     echo "" >> .bashrc && \
     echo "alias rm='rm -i'" >> .bashrc && \
-    echo "alias mv='mv -i'" >> .bashrc 
+    echo "alias mv='mv -i'" >> .bashrc && \
+    echo "alias ldc='ls -lrt'" >> .bashrc
 RUN updatedb
 EXPOSE 22
 EXPOSE 9000
