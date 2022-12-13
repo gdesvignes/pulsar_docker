@@ -275,7 +275,7 @@ RUN wget  http://ds9.si.edu/download/ubuntu20/ds9.ubuntu20.8.4.tar.gz && \
     git clone https://git.code.sf.net/p/dspsr/code dspsr && \
     git clone https://github.com/weltevrede/psrsalsa.git && \
     git clone https://github.com/scottransom/presto.git && \
-    git clone https://github.com/gdesvignes/psrfits_utils.git && \
+#    git clone https://github.com/gdesvignes/psrfits_utils.git && \
     git clone https://github.com/scottransom/pyslalib.git && \
     git clone https://github.com/straten/epsic.git && \
     git clone https://github.com/JohannesBuchner/MultiNest  && \
@@ -503,6 +503,9 @@ ENV PSRFITS_UTILS=$PSRHOME"/psrfits_utils" \
     PATH=$PATH:$PSRHOME"/psrfits_utils/install/bin" \
     C_INCLUDE_PATH=$C_INCLUDE_PATH:$PSRHOME"/psrfits_utils/install/include" \
     LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PSRHOME"/psrfits_utils/install/lib"
+# Downloading psrfits_utils
+WORKDIR $PSRHOME
+RUN git  clone https://github.com/gdesvignes/psrfits_utils.git
 WORKDIR $PSRFITS_UTILS
 RUN  ./prepare && \
     ./configure --prefix=$PSRFITS_UTILS/install --with-presto=$PRESTO && \
@@ -687,6 +690,7 @@ RUN echo "" >> .bashrc && \
 
 # Update database for locate and run sshd server and expose port 22
 USER root
+RUN chmod 755 -R /home/psr
 RUN sed 's/X11Forwarding yes/X11Forwarding yes\nX11UseLocalhost no/' -i /etc/ssh/sshd_config && \
     echo "if [ -e \/home/psr/.mysetenv.bash ]; then" >> .bashrc && \
     echo "   source \/home/psr/.mysetenv.bash" >> .bashrc && \
