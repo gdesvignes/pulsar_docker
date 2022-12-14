@@ -45,7 +45,8 @@ To use the docker image in singularity, you probably need to change the CACHE an
     export SINGULARITY_CACHEDIR=/fpra/mkat/01/users/vivek
     export SINGULARITY_TMPDIR=/fpra/mkat/01/users/vivek
 
-    singularity shell -B <host_directory>:<singularity_dir> <path_to_singularity_image>
+    singularity shell --env DISPLAY=${DISPLAY} -e -B <host_directory>:<singularity_dir> <path_to_singularity_image>
+    
 
 # Issues
 Report problems to gdesvignes@mpifr-bonn.mpg.de
