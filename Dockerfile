@@ -275,7 +275,7 @@ RUN wget  http://ds9.si.edu/download/ubuntu20/ds9.ubuntu20.8.4.tar.gz && \
     git clone https://github.com/ewanbarr/sigpyproc.git && \
     git clone https://git.code.sf.net/p/dspsr/code dspsr && \
     git clone https://github.com/weltevrede/psrsalsa.git && \
-    git clone https://github.com/scottransom/presto.git && \
+    git clone https://github.com/gdesvignes/presto.git && \
     git clone https://github.com/gdesvignes/psrfits_utils.git && \
     git clone https://github.com/scottransom/pyslalib.git && \
     git clone https://github.com/straten/epsic.git && \
