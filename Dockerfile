@@ -12,10 +12,10 @@
 
 FROM ubuntu:jammy
 
-MAINTAINER Gregory Desvignes "gdesvignes.astro@gmail.com"
+LABEL org.opencontainers.image.authors="gdesvignes.astro@gmail.com"
 
 # Suppress debconf warnings
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Switch account to root and adding user accounts and password
 USER root
@@ -28,8 +28,8 @@ RUN adduser --disabled-password --gecos 'unprivileged user' psr && \
     chown -R psr:psr /home/psr/.ssh
 
 # Create space for ssh deamozshn and update the system
-RUN echo 'deb [arch=amd64] http://archive.ubuntu.com/ubuntu focal main multiverse' >> /etc/apt/sources.list && \
-    echo 'deb [arch=amd64] http://mirrors.kernel.org/ubuntu/ focal main multiverse' >> /etc/apt/sources.list && \
+RUN echo 'deb [arch=amd64] http://archive.ubuntu.com/ubuntu jammy main multiverse' >> /etc/apt/sources.list && \
+    echo 'deb [arch=amd64] http://mirrors.kernel.org/ubuntu/ jammy main multiverse' >> /etc/apt/sources.list && \
     mkdir /var/run/sshd && \
     apt-get -y check && \
     apt-get -y update && \
@@ -50,7 +50,6 @@ RUN apt-get -y install \
     cmake-data \
     cpp \
     csh \
-    curl \
     cvs \
     cython3 \
     dkms \
@@ -237,7 +236,13 @@ RUN pip3 install pip -U && \
     pip3 install iminuit -U && \
     pip3 install numba -U && \
     pip3 install pint-pulsar -U && \
-    pip3 install riptide-ffa -U
+    pip3 install riptide-ffa -U && \
+    pip3 install ridgeplot -U && \
+    pip3 install mpi4py -U && \
+    pip3 install anesthetic -U && \
+    pip3 install radvel -U && \
+    pip3 install plotly -U && \
+    pip3 install meson meson-python ninja -U
 
 # Set python3 as default version
 RUN update-alternatives --install  /usr/bin/python python /usr/bin/python3 1
@@ -246,24 +251,15 @@ RUN update-alternatives --install  /usr/bin/python python /usr/bin/python3 1
 USER psr
 
 # Define home, psrhome, OSTYPE and create the directory
-ENV HOME /home/psr
-ENV PSRHOME /home/psr/software
-ENV OSTYPE linux
+ENV HOME=/home/psr
+ENV PSRHOME=/home/psr/software
+ENV OSTYPE=linux
 RUN mkdir -p /home/psr/software
 
 # Downloading all source codes
 WORKDIR $PSRHOME
-RUN wget  http://ds9.si.edu/download/ubuntu20/ds9.ubuntu20.8.4.tar.gz && \
-    mkdir $PSRHOME/ds9-8.4 && \
-    tar -xvvf ds9.ubuntu20.8.4.tar.gz -C $PSRHOME/ds9-8.4 && \
-    wget http://heasarc.gsfc.nasa.gov/FTP/software/lheasoft/fv/fv5.4_pc_linux64.tar.gz && \
-    tar -xvvf fv5.4_pc_linux64.tar.gz -C $PSRHOME && \
-    wget http://www.atnf.csiro.au/people/pulsar/psrcat/downloads/psrcat_pkg.tar.gz && \
+RUN wget http://www.atnf.csiro.au/people/pulsar/psrcat/downloads/psrcat_pkg.tar.gz && \
     tar -xvf psrcat_pkg.tar.gz -C $PSRHOME && \
-    wget http://www.hdfgroup.org/ftp/lib-external/szip/2.1.1/src/szip-2.1.1.tar.gz && \
-    tar -xvvf szip-2.1.1.tar.gz && \
-    wget https://www.hdfgroup.org/ftp/HDF5/tools/h5check/src/h5check-2.0.1.tar.gz && \
-    tar -xvvf h5check-2.0.1.tar.gz && \
     wget -U 'Linux' https://bsdforge.com/projects/devel/clig/src/clig-1.9.11.2.tar.xz && \
     tar -xvvf clig-1.9.11.2.tar.xz && \
     wget http://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio-4.2.0.tar.gz && \
@@ -275,7 +271,7 @@ RUN wget  http://ds9.si.edu/download/ubuntu20/ds9.ubuntu20.8.4.tar.gz && \
     git clone https://github.com/ewanbarr/sigpyproc.git && \
     git clone https://git.code.sf.net/p/dspsr/code dspsr && \
     git clone https://github.com/weltevrede/psrsalsa.git && \
-    git clone https://github.com/gdesvignes/presto.git && \
+    git clone https://github.com/scottransom/presto.git && \
     git clone https://github.com/gdesvignes/psrfits_utils.git && \
     git clone https://github.com/scottransom/pyslalib.git && \
     git clone https://github.com/straten/epsic.git && \
@@ -286,6 +282,7 @@ RUN wget  http://ds9.si.edu/download/ubuntu20/ds9.ubuntu20.8.4.tar.gz && \
     git clone https://github.com/gdesvignes/PulsePortraiture.git &&\
     git clone https://github.com/gdesvignes/pyfitorbit.git &&\
     git clone https://github.com/demorest/tempo_utils &&\
+    git clone https://github.com/JuliaLang/julia.git && \
     git clone --recursive https://github.com/sorin-ionescu/prezto.git "${ZDOTDIR:-$HOME}/.zprezto" 
 
 
@@ -309,12 +306,6 @@ RUN make install && \
     make clean
 USER psr
 
-# ds9
-ENV PATH $PATH:$PSRHOME/ds9-7.5
-
-# fv
-ENV PATH $PATH:$PSRHOME/fv5.4
-
 # psrcat
 ENV PSRCAT_FILE=$PSRHOME"/psrcat_tar/psrcat.db" \
     PATH=$PATH:$PSRHOME"/psrcat_tar"
@@ -333,8 +324,8 @@ RUN ./prepare && \
 # tempo2
 ENV TEMPO2=$PSRHOME"/tempo2/T2runtime" \
     PATH=$PATH:$PSRHOME"/tempo2/T2runtime/bin" \
-    C_INCLUDE_PATH=$C_INCLUDE_PATH:$PSRHOME"/tempo2/T2runtime/include" \
-    LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PSRHOME"/tempo2/T2runtime/lib"
+    C_INCLUDE_PATH=$PSRHOME"/tempo2/T2runtime/include" \
+    LD_LIBRARY_PATH=$PSRHOME"/tempo2/T2runtime/lib"
 WORKDIR $PSRHOME/tempo2
 # A fix to get rid of: returned a non-zero code: 126.
 RUN sync && perl -pi -e 's/chmod \+x/#chmod +x/' bootstrap
@@ -348,8 +339,20 @@ RUN touch meerkat2gps.clk && \
     echo "# UTC(meerkat) UTC(GPS)" > meerkat2gps.clk && \
     echo "#" >> meerkat2gps.clk && \
     echo "50155.00000 0.0" >> meerkat2gps.clk && \
-    echo "58000.00000 0.0" >> meerkat2gps.clk
+    echo "80000.00000 0.0" >> meerkat2gps.clk
 
+# PRESTO 5
+ENV PRESTO_SRC=$PSRHOME"/presto" \
+    PRESTO=$PSRHOME"/presto_build" \
+    PATH=$PATH:$PSRHOME"/presto_build/bin" \
+    LIBRARY_PATH=LIBRARY_PATH:$PSRHOME"/presto_build/lib/aarch64-linux-gnu" \
+    LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PSRHOME"/presto_build/lib/aarch64-linux-gnu"
+WORKDIR $PRESTO_SRC
+RUN meson setup build --prefix=$PRESTO && python check_meson_build.py
+RUN meson compile -C build
+RUN meson install -C build
+WORKDIR $PRESTO_SRC/python
+RUN pip install --config-settings=builddir=build .
 
 ENV EPSIC=$PSRHOME"/epsic"
 WORKDIR $EPSIC/src
@@ -368,6 +371,8 @@ ENV PSRCHIVE=$PSRHOME"/psrchive/install" \
     PATH=$PATH:$PSRHOME"/psrchive/install/bin" \
     C_INCLUDE_PATH=$C_INCLUDE_PATH:$PSRHOME"/psrchive/install/include" \
     LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PSRHOME"/psrchive/install/lib" \
+    #PSRCHIVE_LIBS=$PSRHOME"/psrchive/install/lib" \
+    #PSRCHIVE_CFLAGS=$PSRHOME"/psrchive/install/include" \
     PYTHONPATH=$PYTHONPATH:$PSRHOME"/psrchive/install/lib/python3.10/site-packages"
 WORKDIR $PSRHOME/psrchive/
 RUN ./bootstrap && \
@@ -406,12 +411,13 @@ RUN python3 setup.py install --record list.txt --user
 ENV DSPSR=$PSRHOME"/dspsr" \
     PATH=$PATH:$PSRHOME"/dspsr/install/bin" \
     LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PSRHOME"/dspsr/install/lib" \
+    LIBRARY_PATH=$LIBRARY_PATH:$PSRHOME"/dspsr/install/lib" \
     C_INCLUDE_PATH=$C_INCLUDE_PATH:$PSRHOME"/dspsr/install/include"
 
 WORKDIR $DSPSR
-RUN ./bootstrap && \
-    echo "apsr asp bcpm bpsr caspsr cpsr cpsr2 dummy fits kat lbadr lbadr64  puma2 sigproc ska1" > backends.list && \
-    ./configure --prefix=$DSPSR/install --x-libraries=/usr/lib/x86_64-linux-gnu CPPFLAGS="$CPPFLAGS -I"$DAL"/install/include -I/usr/include/hdf5/serial -I/usr/local/cuda/include"  LDFLAGS="-L"$DAL"/install/lib -L/usr/lib/x86_64-linux-gnu/hdf5/serial  -L/usr/local/cuda/lib64" LIBS="-lpgplot -lcpgplot" && \
+RUN ./bootstrap &&  \
+    echo "asp caspsr cpsr cpsr2 dummy fits vdif sigproc" > backends.list && \
+    PKG_CONFIG_PATH=$PSRCHIVE"/lib/pkgconfig/" ./configure --prefix=$DSPSR/install CPPFLAGS="$CPPFLAGS  -I/usr/include/hdf5/serial -I$PSRCHIVE/include -I$PSRCHIVE/include/Pulsar"  LDFLAGS="-L/usr/lib/x86_64-linux-gnu/hdf5/serial" LIBS="-lpgplot -lcpgplot" && \
     make -j $(nproc) && \
     make && \
     make install && \
@@ -435,33 +441,13 @@ RUN sed -i.backup -e's/GSLFLAGS =.*/GSLFLAGS = -DGSL_VERSION_NUMBER=203/' Makefi
     make -j $(nproc) && \
     make
 
-
-# PRESTO 3
-ENV PRESTO=$PSRHOME"/presto" \
-    PATH=$PATH:$PSRHOME"/presto/bin" \
-    LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PSRHOME"/presto/lib" \
-    PYTHONPATH=$PYTHONPATH:$PSRHOME"/presto/lib/python"
-WORKDIR $PRESTO/src
-#RUN make makewisdom
-RUN make prep && \
-    make -j $(nproc) && \
-    make && \
-    make mpi
-WORKDIR $PRESTO
-RUN pip install .
-
-# pyslalib
-ENV PYSLALIB=$PSRHOME"/pyslalib"
-WORKDIR $PYSLALIB
-RUN python3 setup.py install --record list.txt --user
-
 #Zsh commands
 RUN rm -rf /home/psr/.zprezto && zsh -c 'git clone --recursive https://github.com/sorin-ionescu/prezto.git "${ZDOTDIR:-$HOME}/.zprezto"' && \
 zsh -c 'setopt EXTENDED_GLOB && for rcfile in "${ZDOTDIR:-$HOME}"/.zprezto/runcoms/^README.md(.N); do ln -s "$rcfile" "${ZDOTDIR:-$HOME}/.${rcfile:t}"; done '
 
 
-RUN curl -L https://iterm2.com/shell_integration/zsh -o ~/.iterm2_shell_integration.zsh && \
-curl -L https://iterm2.com/shell_integration/install_shell_integration_and_utilities.sh | bash
+#RUN curl -L https://iterm2.com/shell_integration/zsh -o ~/.iterm2_shell_integration.zsh && \
+#curl -L https://iterm2.com/shell_integration/install_shell_integration_and_utilities.sh | bash
 
 # PolyChordLite
 WORKDIR $PSRHOME/PolyChordLite
@@ -512,8 +498,14 @@ RUN  ./prepare && \
     make && \
     make install
 
+
+# Julia
+ENV JULIA=$PSRHOME"/julia"
+WORKDIR $PSRHOME/julia
+RUN git checkout v1.11.1 && make -j $(nproc)
+
 # Add to pythonpath
-PYTHONPATH=$PYTHONPATH:"/home/psr/.local/lib/python3.10/site-packages"
+#PYTHONPATH=$PYTHONPATH:"/home/psr/.local/lib/python3.10/site-packages"
 
 # Clean downloaded source codes
 WORKDIR $PSRHOME
@@ -547,7 +539,6 @@ RUN echo "" >> .bashrc && \
     echo "export PROMPT_COMMAND=\"history -a\"" >> .mysetenv.bash && \
     echo "bind '\"\e[A\":history-search-backward'" >> .mysetenv.bash && \
     echo "bind '\"\e[B\":history-search-forward'" >> .mysetenv.bash && \
-
     echo "" >> .mysetenv.bash && \
     echo "# PGPLOT" >> .mysetenv.bash && \
     echo "export PGPLOT_DIR=/usr/lib/pgplot5" >> .mysetenv.bash && \
@@ -557,44 +548,34 @@ RUN echo "" >> .bashrc && \
     echo "export PGPLOT_FOREGROUND=black" >> .mysetenv.bash && \
     echo "export PGPLOT_DEV=/xs" >> .mysetenv.bash && \
     echo "" >> .mysetenv.bash && \
-
     echo "# calceph" >> .mysetenv.bash && \
     echo "export CALCEPH=\$PSRHOME/calceph-2.3.2" >> .mysetenv.bash && \
     echo "export PATH=\$PATH:\$CALCEPH/install/bin" >> .mysetenv.bash && \
     echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:\$CALCEPH/install/lib" >> .mysetenv.bash && \
     echo "export C_INCLUDE_PATH=\$C_INCLUDE_PATH:\$CALCEPH/install/include" >> .mysetenv.bash && \
     echo "" >> .mysetenv.bash && \
-
-    echo "# ds9" >> .mysetenv.bash && \
-    echo "export PATH=\$PATH:\$PSRHOME/ds9-7.5" >> .mysetenv.bash && \
-    echo "" >> .mysetenv.bash && \
-
-    echo "# fv" >> .mysetenv.bash && \
-    echo "export PATH=\$PATH:\$PSRHOME/fv5.4" >> .mysetenv.bash && \
-    echo "" >> .mysetenv.bash && \
-
     echo "# psrcat" >> .mysetenv.bash && \
     echo "export PSRCAT_FILE=\$PSRHOME/psrcat_tar/psrcat.db" >> .mysetenv.bash && \
     echo "export PATH=\$PATH:\$PSRHOME/psrcat_tar" >> .mysetenv.bash && \
     echo "" >> .mysetenv.bash && \
-
     echo "# tempo" >> .mysetenv.bash && \
     echo "export TEMPO=\$PSRHOME/tempo" >> .mysetenv.bash && \
     echo "export PATH=\$PATH:\$TEMPO/bin" >> .mysetenv.bash && \
     echo "" >> .mysetenv.bash && \
-
+    echo "# Julia" >> .mysetenv.bash && \
+    echo "export JULIA=\$PSRHOME/julia" >> .mysetenv.bash && \
+    echo "export PATH=\$PATH:\$JULIA" >> .mysetenv.bash && \
+    echo "" >> .mysetenv.bash && \
     echo "# tempo2" >> .mysetenv.bash && \
     echo "export TEMPO2=\$PSRHOME/tempo2/T2runtime" >> .mysetenv.bash && \
     echo "export PATH=\$PATH:\$TEMPO2/bin" >> .mysetenv.bash && \
     echo "export C_INCLUDE_PATH=\$C_INCLUDE_PATH:\$TEMPO2/include" >> .mysetenv.bash && \
     echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:\$TEMPO2/lib" >> .mysetenv.bash && \
     echo "" >> .mysetenv.bash && \
-
     echo "# EPSIC" >> .mysetenv.bash && \
     echo "export EPSIC=\$PSRHOME/epsic" >> .mysetenv.bash && \
     echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:\$PSRHOME/epsic/install/lib" >> .mysetenv.bash && \
     echo "C_INCLUDE_PATH=\$C_INCLUDE_PATH:\$EPSIC/install/include/epsic" >> .mysetenv.bash && \
-
     echo "# PSRCHIVE" >> .mysetenv.bash && \
     echo "export PSRCHIVE=\$PSRHOME/psrchive/install" >> .mysetenv.bash && \
     echo "export PATH=\$PATH:\$PSRCHIVE/bin" >> .mysetenv.bash && \
@@ -602,7 +583,6 @@ RUN echo "" >> .bashrc && \
     echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:\$PSRCHIVE/lib" >> .mysetenv.bash && \
     echo "export PYTHONPATH=\$PYTHONPATH:\$PSRCHIVE/lib/python3.10/site-packages" >> .mysetenv.bash && \
     echo "" >> .mysetenv.bash && \
-
     echo "# SIGPROC" >> .mysetenv.bash && \
     echo "export SIGPROC=\$PSRHOME/sigproc" >> .mysetenv.bash && \
     echo "export PATH=\$PATH:\$SIGPROC/install/bin" >> .mysetenv.bash && \
@@ -611,81 +591,62 @@ RUN echo "" >> .bashrc && \
     echo "export CC=gcc" >> .mysetenv.bash && \
     echo "export CXX=g++" >> .mysetenv.bash && \
     echo "" >> .mysetenv.bash && \
-
     echo "# sigpyproc" >> .mysetenv.bash && \
     echo "export SIGPYPROC=\$PSRHOME/sigpyproc" >> .mysetenv.bash && \
     echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:\$SIGPYPROC/lib/c" >> .mysetenv.bash && \
     echo "" >> .mysetenv.bash && \
-    
     echo "# DSPSR" >> .mysetenv.bash && \
     echo "export DSPSR=\$PSRHOME/dspsr" >> .mysetenv.bash && \
     echo "export PATH=\$PATH:\$DSPSR/install/bin" >> .mysetenv.bash && \
     echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:\$DSPSR/install/lib" >> .mysetenv.bash && \
     echo "export C_INCLUDE_PATH=\$C_INCLUDE_PATH:\$DSPSR/install/include" >> .mysetenv.bash && \
     echo "" >> .mysetenv.bash && \
-
     echo "# clig" >> .mysetenv.bash && \
     echo "export CLIG=\$PSRHOME/clig" >> .mysetenv.bash && \
     echo "export PATH=\$PATH:\$CLIG/instal/bin" >> .mysetenv.bash && \
     echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:\$CLIG/instal/lib" >> .mysetenv.bash && \
     echo "" >> .mysetenv.bash && \
-
     echo "# PSRSALSA" >> .mysetenv.bash && \
     echo "export PSRSALSA=\$PSRHOME/psrsalsa" >> .mysetenv.bash && \
     echo "export PATH=\$PATH:\$PSRSALSA/bin" >> .mysetenv.bash && \
     echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:\$PSRSALSA/src/lib" >> .mysetenv.bash && \
     echo "" >> .mysetenv.bash && \
-
-    echo "# PRESTO 3" >> .mysetenv.bash && \
-    echo "export PRESTO=\$PSRHOME/presto" >> .mysetenv.bash && \
+    echo "# PRESTO 5" >> .mysetenv.bash && \
+    echo "export PRESTO=\$PSRHOME/presto_build" >> .mysetenv.bash && \
     echo "export PATH=\$PATH:\$PRESTO/bin" >> .mysetenv.bash && \
     echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:\$PRESTO/lib" >> .mysetenv.bash && \
     echo "export PYTHONPATH=\$PYTHONPATH:\$PRESTO/lib/python" >> .mysetenv.bash && \
     echo "" >> .mysetenv.bash && \
-
     echo "# psrfits_utils" >> .mysetenv.bash && \
     echo "export PSRFITS_UTILS=\$PSRHOME/psrfits_utils" >> .mysetenv.bash && \
     echo "export PATH=\$PATH:\$PSRFITS_UTILS/install/bin" >> .mysetenv.bash && \
     echo "export C_INCLUDE_PATH=\$C_INCLUDE_PATH:\$PSRFITS_UTILS/install/include" >> .mysetenv.bash && \
     echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:\$PSRFITS_UTILS/install/lib" >> .mysetenv.bash && \
     echo "" >> .mysetenv.bash && \
-
     echo "# pyslalib" >> .mysetenv.bash && \
     echo "export PYSLALIB=\$PSRHOME/pyslalib" >> .mysetenv.bash && \
     echo "" >> .mysetenv.bash && \
-
     echo "# MultiNest" >> .mysetenv.bash && \
     echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/home/psr/software/MultiNest/lib" >> .mysetenv.bash && \
     echo "export MULTINEST_DIR=\$PSRHOME/MultiNest/lib" >> .mysetenv.bash && \
-
     echo "# PolyChordLite" >> .mysetenv.bash && \
     echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/home/psr/software/PolyChordLite/lib" >> .mysetenv.bash && \
     echo "export PC_DIR=\$PSRHOME/PolyChordLite/lib" >> .mysetenv.bash && \
-
-
     echo "# Plotres" >> .mysetenv.bash && \
     echo "export PLOTRES=\$PSRHOME/plotres" >> .mysetenv.bash && \
     echo "export PATH=\$PATH:\$PLOTRES/" >> .mysetenv.bash && \
-
     #echo "# Fitorbit" >> .mysetenv.bash && \
     #echo "export FITORBIT=\$PSRHOME/fitorbit" >> .mysetenv.bash && \
     #echo "export PATH=\$PATH:\$FITORBIT/bin" >> .mysetenv.bash && \
     #echo "export fitorbitdir=\$PSRHOME/fitorbit/src/" >> .mysetenv.bash && \
-
     echo "# Pulse Portraiture" >> .mysetenv.bash && \
     echo "export PP=\$PSRHOME/PulsePortraiture" >> .mysetenv.bash && \
     echo "export PYTHONPATH=\$PYTHONPATH:\$PP/" >> .mysetenv.bash && \
-
     echo "alias emacs='emacs -nw'" >> .mysetenv.bash  && \
     echo "alias emcas='emacs'" >> .mysetenv.bash  && \
     echo "alias em='emacs'" >> .mysetenv.bash  && \
     echo "alias mroe='more'" >> .mysetenv.bash  && \
-
-
     echo "source \$HOME/.bashrc" >> $HOME/.zshrc && \
-
-
-
     /bin/bash -c "source \$HOME/.bashrc" 
 
 
